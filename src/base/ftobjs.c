@@ -27,6 +27,7 @@
 #include <freetype/internal/ftstream.h>
 #include <freetype/internal/sfnt.h>          /* for SFNT_Load_Table_Func */
 #include <freetype/internal/psaux.h>         /* for PS_Driver            */
+#include <freetype/internal/svginterface.h>
 
 #include <freetype/tttables.h>
 #include <freetype/tttags.h>
@@ -39,6 +40,7 @@
 #include <freetype/internal/services/svttcmap.h>
 #include <freetype/internal/services/svkern.h>
 #include <freetype/internal/services/svtteng.h>
+#include <freetype/otsvg.h>
 
 #include <freetype/ftdriver.h>
 
@@ -316,6 +318,17 @@
     if ( !error && clazz->init_slot )
       error = clazz->init_slot( slot );
 
+#ifdef FT_CONFIG_OPTION_SVG
+    /* check if SVG table exists allocate the space in slot->other */
+    if ( slot->face->face_flags & FT_FACE_FLAG_SVG )
+    {
+      FT_SVG_Document  document;
+      if ( FT_NEW( document ) )
+        goto Exit;
+      slot->other = document;
+    }
+#endif
+
   Exit:
     return error;
   }
@@ -350,6 +363,7 @@
   {
     FT_Outline*  outline = &slot->outline;
     FT_Bitmap*   bitmap  = &slot->bitmap;
+    FT_Module    module;
 
     FT_Pixel_Mode  pixel_mode;
 
@@ -361,7 +375,19 @@
 
 
     if ( slot->format != FT_GLYPH_FORMAT_OUTLINE )
+    {
+      if ( slot->format == FT_GLYPH_FORMAT_SVG )
+      {
+        SVG_Service  svg_service;
+
+        module = FT_Get_Module(slot->library, "ot-svg" );
+        svg_service = (SVG_Service)module->clazz->module_interface;
+        return svg_service->preset_slot( module, slot, FALSE );
+      }
+      else
+        return 1;
       return 1;
+    }
 
     if ( origin )
     {
@@ -550,7 +576,23 @@
     slot->subglyphs     = NULL;
     slot->control_data  = NULL;
     slot->control_len   = 0;
+#ifndef FT_CONFIG_OPTION_SVG
     slot->other         = NULL;
+#else
+    if ( !( slot->face->face_flags & FT_FACE_FLAG_SVG ) )
+      slot->other         = NULL;
+    else
+    {
+      if ( slot->internal->flags & FT_GLYPH_OWN_GZIP_SVG )
+      {
+        FT_Memory        memory = slot->face->memory;
+        FT_SVG_Document  doc    = (FT_SVG_Document)slot->other;
+        FT_FREE( doc->svg_document );
+        slot->internal->load_flags &= ~FT_GLYPH_OWN_GZIP_SVG;
+      }
+    }
+#endif
+
     slot->format        = FT_GLYPH_FORMAT_NONE;
 
     slot->linearHoriAdvance = 0;
@@ -567,6 +609,20 @@
     FT_Driver_Class  clazz  = driver->clazz;
     FT_Memory        memory = driver->root.memory;
 
+
+#ifdef FT_CONFIG_OPTION_SVG
+    if ( slot->face->face_flags & FT_FACE_FLAG_SVG )
+    {
+      /* free memory in case svg was there */
+      if ( slot->internal->flags & FT_GLYPH_OWN_GZIP_SVG )
+      {
+        FT_SVG_Document  doc    = (FT_SVG_Document)slot->other;
+        FT_FREE( doc->svg_document );
+        slot->internal->flags &= ~FT_GLYPH_OWN_GZIP_SVG;
+      }
+      FT_FREE( slot->other );
+    }
+#endif
 
     if ( clazz->done_slot )
       clazz->done_slot( slot );
@@ -586,6 +642,7 @@
 
       FT_FREE( slot->internal );
     }
+
   }
 
 
@@ -4423,6 +4480,13 @@
         render->render        = clazz->render_glyph;
       }
 
+#ifdef FT_CONFIG_OPTION_SVG
+      if ( clazz->glyph_format == FT_GLYPH_FORMAT_SVG )
+      {
+        render->render = clazz->render_glyph;
+      }
+#endif
+
       /* add to list */
       node->data = module;
       FT_List_Add( &library->renderers, node );
@@ -4558,7 +4622,6 @@
     {
     case FT_GLYPH_FORMAT_BITMAP:   /* already a bitmap, don't do anything */
       break;
-
     default:
       if ( slot->internal->load_flags & FT_LOAD_COLOR )
       {
@@ -5565,6 +5628,5 @@
     else
       return 0;
   }
-
 
 /* END */

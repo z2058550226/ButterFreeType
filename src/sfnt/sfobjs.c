@@ -982,6 +982,12 @@
       LOAD_( colr );
     }
 
+#ifdef FT_CONFIG_OPTION_SVG
+    /* opentype svg glyph support */
+    if ( sfnt->load_svg )
+      LOAD_( svg );
+#endif
+
     /* consider the pclt, kerning, and gasp tables as optional */
     LOAD_( pclt );
     LOAD_( gasp );
@@ -1401,6 +1407,11 @@
         sfnt->free_cpal( face );
         sfnt->free_colr( face );
       }
+#ifdef FT_CONFIG_OPTION_SVG
+      /* free svg data */
+      if ( sfnt->free_svg )
+        sfnt->free_svg( face );
+#endif
     }
 
 #ifdef TT_CONFIG_OPTION_BDF

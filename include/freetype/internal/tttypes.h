@@ -1644,6 +1644,9 @@ FT_BEGIN_HEADER
     void*                 cpal;
     void*                 colr;
 
+    /* OpenType SVG Glyph Support */
+    void*                 svg;
+
   } TT_FaceRec;
 
 

@@ -1142,6 +1142,9 @@ else
   ftoption_unset FT_CONFIG_OPTION_USE_BROTLI
 fi
 
+ftoption_set FT_CONFIG_OPTION_SVG
+ftoption_unset FT_CONFIG_OPTION_DEFAULT_SVG
+
 AC_SUBST([CFLAGS])
 AC_SUBST([LDFLAGS])
 

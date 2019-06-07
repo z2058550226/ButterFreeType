@@ -428,7 +428,7 @@ FT_BEGIN_HEADER
    *   them for certain configurations only.
    */
 /* #define FT_DEBUG_LEVEL_ERROR */
-/* #define FT_DEBUG_LEVEL_TRACE */
+#define FT_DEBUG_LEVEL_TRACE
 
 
   /**************************************************************************
@@ -487,7 +487,7 @@ FT_BEGIN_HEADER
    *   Do not `#undef` this macro here since the build system might define it
    *   for certain configurations only.
    */
-/* #define FT_DEBUG_MEMORY */
+#define FT_DEBUG_MEMORY
 
 
   /**************************************************************************
@@ -505,6 +505,19 @@ FT_BEGIN_HEADER
    *   More details can be found in the files `ftmoderr.h` and `fterrors.h`.
    */
 #undef FT_CONFIG_OPTION_USE_MODULE_ERRORS
+
+
+  /**************************************************************************
+   *
+   * OpenType SVG Glyph Support
+   *
+   *   If `FT_CONFIG_OPTION_SVG` is set, OpenType SVG glyphs will be
+   *   supported.
+   *   If `FT_CONFIG_OPTION_DEFAULT_SVG` is also set, a default library will
+   *   also be integrated so no external hooks will be necessary.
+   */
+#define FT_CONFIG_OPTION_SVG
+/* #define FT_CONFIG_OPTION_DEFAULT_SVG */
 
 
   /**************************************************************************

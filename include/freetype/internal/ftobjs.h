@@ -418,7 +418,8 @@ FT_BEGIN_HEADER
    *     initializing the glyph slot.
    */
 
-#define FT_GLYPH_OWN_BITMAP  0x1U
+#define FT_GLYPH_OWN_BITMAP    0x1U
+#define FT_GLYPH_OWN_GZIP_SVG  0x2U
 
   typedef struct  FT_Slot_InternalRec_
   {
@@ -889,6 +890,10 @@ FT_BEGIN_HEADER
    *     created.  @FT_Reference_Library increments this counter, and
    *     @FT_Done_Library only destroys a library if the counter is~1,
    *     otherwise it simply decrements it.
+   *
+   *   svg_renderer_state ::
+   *     A pointer to a state object that will have the state of the SVG
+   *     Renderer.  This will be totally managed by the renderer.
    */
   typedef struct  FT_LibraryRec_
   {
@@ -915,6 +920,10 @@ FT_BEGIN_HEADER
 #endif
 
     FT_Int             refcount;
+
+#ifdef FT_CONFIG_OPTION_SVG
+    void*              svg_renderer_state;
+#endif
 
   } FT_LibraryRec;
 

@@ -224,6 +224,87 @@ FT_BEGIN_HEADER
 
   /**************************************************************************
    *
+   * @type:
+   *   FT_SvgGlyph
+   *
+   * @description:
+   *   A handle to an object used to model an SVG glyph image.  This is a
+   *   sub-class of @FT_Glyph, and a pointer to @FT_SvgGlyphRec.
+   */
+  typedef struct FT_SvgGlyphRec_*  FT_SvgGlyph;
+
+  /**************************************************************************
+   *
+   * @struct:
+   *   FT_SvgGlyphRec
+   *
+   * @description:
+   *   A structure used for OT-SVG glyph images.  This really is a 'sub-class'
+   *   of @FT_GlyphRec.
+   *
+   * @fields:
+   *   root ::
+   *     The root @FT_GlyphRec fields.
+   *
+   *   svg_document ::
+   *     A pointer to the SVG document.
+   *
+   *   svg_document_length ::
+   *     The length of `svg_document`.
+   *
+   *   glyph_index ::
+   *     The index of the glyph to be rendered.
+   *
+   *   metrics ::
+   *     A metrics object storing the size information.
+   *
+   *   units_per_EM ::
+   *     The size of the EM square.
+   *
+   *   start_glyph_id ::
+   *     The first glyph ID in the glyph range is covered by this document.
+   *
+   *   end_glyph_id ::
+   *     The last glyph ID in the glyph range is covered by this document.
+   *
+   *   transform ::
+   *     A 2x2 transformation matrix to apply on the glyph while rendering it.
+   *
+   *   delta ::
+   *     Translation to apply on the glyph while rendering.
+   *
+   * @note:
+   *   `metrics` and `units_per_EM` might look like repetitions since both
+   *   fields are stored in face objects.  However, the Glyph Management API
+   *   requires an `FT_Glyph` to store all the information that completely
+   *   describes a glyph. Outline glyphs are themselves scaled thus they
+   *   don't need this information. However, SVG documents do. The field of
+   *   `units_per_EM` is needed because the SVG is to be scaled in case its
+   *   viewbox size differs from `units_per_EM`. For more info, refer to
+   *   the section _Coordinate Systems and Glyph Metrics_ of the OpenType
+   *   SVG specs. The `transform` and `delta` are stored here because for an
+   *   SVG document, there's no way to apply a transformation without parsing
+   *   it. Thus, we just store the transform and later the renderer can apply
+   *   it while rendering.
+   */
+  typedef struct  FT_SvgGlyphRec_
+  {
+    FT_GlyphRec         root;
+    FT_Byte*            svg_document;
+    FT_ULong            svg_document_length;
+    FT_UInt             glyph_index;
+    FT_Size_Metrics     metrics;
+    FT_UShort           units_per_EM;
+    FT_UShort           start_glyph_id;
+    FT_UShort           end_glyph_id;
+    FT_Matrix           transform;
+    FT_Vector           delta;
+
+  } FT_SvgGlyphRec;
+
+
+  /**************************************************************************
+   *
    * @function:
    *   FT_New_Glyph
    *
